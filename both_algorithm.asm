@@ -22,12 +22,14 @@
 		jr $ra
 
 	multfac:
-		# $s0 it's HIGH
+		# $s0 is HIGH
 		add $s0, $zero, $zero
-		# $s1 é LOW
+		# $s1 is LOW
 		add $s1, $a1, $zero
 		# aux bit
 		add $s2, $zero, $zero
+		# multiplicand
+		add $s3, $a1, $zero  
 
 		addi $t3, $zero, 1
 		addi $t4, $zero, 32
@@ -42,13 +44,14 @@
 			beq $s2, $zero, arithmetic_right_shift
 
 			# s0 = s0 + a1
-			add $s0, $s0, $a1
+			add $s0, $s0, $s3
 
 			j arithmetic_right_shift
 		p0_is_1:
 			bne $s2, $zero, arithmetic_right_shift
 
-			sub $s0, $s0, $a1
+			# s0 = s0 - a1
+			sub $s0, $s0, $s3
 
 			j arithmetic_right_shift
 		arithmetic_right_shift:
