@@ -6,7 +6,9 @@
 # Universidade de Brasília Campus Gama
 
 .data
-
+	new_line: .asciiz "\n"
+	high: .asciiz "High: "
+	low: .asciiz "Low: "
 
 .text
 	read_integer:
@@ -21,17 +23,22 @@
 
 		jr $ra
 
+	print_string:
+		li $v0, 4
+		syscall
+		jr $ra
+
 	multfac:
 		# $s0 is HIGH
 		add $s0, $zero, $zero
 		# $s1 is LOW
 		add $s1, $a1, $zero
-		# aux bit
+		# $s2 aux bit
 		add $s2, $zero, $zero
-		# multiplicand
-		add $s3, $a1, $zero  
 
-		addi $t3, $zero, 1
+		add $s3, $zero, $a0
+
+		add $t3, $zero, $zero
 		addi $t4, $zero, 32
 
 		loop:
@@ -43,17 +50,16 @@
 
 			beq $s2, $zero, arithmetic_right_shift
 
-			# s0 = s0 + a1
+			# s0 = s0 + a0
 			add $s0, $s0, $s3
 
 			j arithmetic_right_shift
 		p0_is_1:
 			bne $s2, $zero, arithmetic_right_shift
 
-			# s0 = s0 - a1
+			# s0 = s0 - a0
 			sub $s0, $s0, $s3
 
-			j arithmetic_right_shift
 		arithmetic_right_shift:
 			# LESS SIGNIFICANT BIT OF HIGH IS SAVE ON $t0
 			andi $t0, $s0, 1
@@ -64,16 +70,19 @@
 
 			# MAKE ARITHMETIC SHIFT ON HIGH
 			sra $s0, $s0, 1
+
 			# MAKE RIGHT LOGICAL SHIFT ON LOW 
 			srl $s1, $s1, 1
-			# SHIFT LEFT LOGICAL ON MOST SIGNIFICANT BIT OF HIGH
-			# TO ADD IT TO THE LOW
+
+			# SHIFT LEFT LOGICAL ON MOST SIGNIFICANT
+			# BIT OF HIGH TO ADD IT TO THE LOW
 			sll $t0, $t0, 31
 
-			# SUM LOW WITH MOST SIGNIFICANT BIT OF HIGH
+			# SUM LOW WITH LESS SIGNIFICANT BIT OF HIGH
 			add $s1, $s1, $t0
 
 			addi $t3, $t3, 1
+
 			j loop
 
 		return:
@@ -81,6 +90,7 @@
 			mtlo $s1
 
 			jr $ra
+
 	main:
 		jal read_integer
 		add $a0, $v0, $zero
@@ -90,13 +100,25 @@
 
 		jal multfac
 
+		la $a0, high
+		jal print_string
+		
 		mfhi $a0
-
 		jal print_integer
+
+		la $a0, new_line
+		jal print_string
+
+		la $a0, low
+		jal print_string
 
 		mflo $a0
-
 		jal print_integer
+
+		la $a0, new_line
+		jal print_string
+
+		jal exit
 
 	exit:
 		li $v0, 10
